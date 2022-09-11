@@ -1,29 +1,26 @@
-CREATE SCHEMA legislations
-go
-
 CREATE TABLE dbo.legislations(
 	LegislationVersionId			int NOT NULL PRIMARY KEY,
-	LegislationSourceId				int,
+	LegislationSourceId				UNIQUEIDENTIFIER,
 	Title							nvarchar(max),
 	NativeTitle						nvarchar(max),
-	IssuingBodyId					int,
-	JurisdictionId					int
+	IssuingBodySourceId				UNIQUEIDENTIFIER,
+	JurisdictionSourceId			UNIQUEIDENTIFIER
 
-	FOREIGN KEY (IssuingBodyId) REFERENCES dbo.issuing_body (Id),
-	FOREIGN KEY (JurisdictionId) REFERENCES dbo.jurisdiction (Id)
+	FOREIGN KEY (IssuingBodySourceId) REFERENCES dbo.issuing_body (SourceId),
+	FOREIGN KEY (JurisdictionSourceId) REFERENCES dbo.jurisdiction (SourceId)
 );
 
 CREATE TABLE dbo.jurisdiction(
-	Id					int PRIMARY KEY,
+	Id					int IDENTITY (1,1),
 	Name				nvarchar(255),
-	SourceId			UNIQUEIDENTIFIER
+	SourceId			UNIQUEIDENTIFIER PRIMARY KEY
 
 );
 
 CREATE TABLE dbo.issuing_body(
-	Id					int PRIMARY KEY,
+	Id					int IDENTITY(1,1),
 	Name				nvarchar(255),
-	SourceId			UNIQUEIDENTIFIER
+	SourceId			UNIQUEIDENTIFIER PRIMARY KEY
 
 );
 
