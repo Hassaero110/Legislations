@@ -2,7 +2,10 @@ from dataclasses import asdict, dataclass
 import html
 import json
 from types import NoneType
+import os
 
+
+directory = 'Legislation'
 
 @dataclass(kw_only=True)
 class Legislation:
@@ -28,7 +31,7 @@ class Legislation:
     @staticmethod
     def listFromJson(json_file):
         list_of_legislation = []
-        with open(json_file, 'r') as f:
+        with open(json_file, 'r', encoding='utf-8-sig') as f:
             list_of_versions = json.load(f, cls=CustomJsonDecoder)
         for ver_dict in list_of_versions:
             list_of_legislation.append( Legislation(**ver_dict) )
@@ -74,5 +77,10 @@ if __name__ == "__main__":
     with open('testing.json', 'w') as f:
         json.dump(dictionary, f,  indent=1)
 
-    Leg = Legislation.listFromJson('legislation/Legislation_397908.json')
-    print(Leg)
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+    # checking if it is a file
+        if os.path.isfile(f) and f.endswith(".json"):
+
+            leg_list = Legislation.listFromJson(f)
+            print(leg_list[0])
