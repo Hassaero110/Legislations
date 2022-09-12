@@ -1,5 +1,5 @@
 CREATE TABLE dbo.jurisdiction(
-	Id					int IDENTITY (1,1),
+	Id					int IDENTITY(1,1),
 	Name				nvarchar(255),
 	SourceId			UNIQUEIDENTIFIER PRIMARY KEY
 
@@ -15,6 +15,7 @@ CREATE TABLE dbo.issuing_body(
 CREATE TABLE dbo.legislations(
 	LegislationVersionId			int NOT NULL PRIMARY KEY,
 	LegislationSourceId				UNIQUEIDENTIFIER,
+	LegislationVersionOrdinal		int,
 	Title							nvarchar(max),
 	NativeTitle						nvarchar(max),
 	IssuingBodySourceId				UNIQUEIDENTIFIER,
@@ -24,17 +25,21 @@ CREATE TABLE dbo.legislations(
 	FOREIGN KEY (JurisdictionSourceId) REFERENCES dbo.jurisdiction (SourceId)
 );
 
+
 CREATE TABLE dbo.part(
-	PartVersionId					int PRIMARY KEY,
+	PartVersionId					int,
 	LegislationVersionId			int,
-	LegislationVersionOrdinal		int,
-	PartSourceId					UNIQUEIDENTIFIER,
-	PartVersionOrdinal				int,
+	PartSourceId					UNIQUEIDENTIFIER NOT NULL,
+	PartVersionOrdinal				int NOT NULL,
 	OrderNum						int,
 	Content							nvarchar(max),
 	NativeContent					nvarchar(max),
 	ParentPartVersionId				int
 
 
-	FOREIGN KEY (LegislationVersionId) REFERENCES dbo.legislations (LegislationVersionId)
+	FOREIGN KEY (LegislationVersionId) REFERENCES dbo.legislations(LegislationVersionId)
 );
+
+ALTER TABLE dbo.part
+    ADD CONSTRAINT pk_legislationConstraint PRIMARY KEY (PartSourceId, PartVersionOrdinal)
+GO
