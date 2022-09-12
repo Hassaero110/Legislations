@@ -26,12 +26,14 @@ class Legislation:
     ParentPartVersionOrdinal:  int | NoneType
 
     @staticmethod
-    def fromJson(json_file):
+    def listFromJson(json_file):
+        list_of_legislation = []
         with open(json_file, 'r') as f:
-            dictionary = json.load(f, cls=CustomJsonDecoder)
-            print(type(dictionary[0]))
+            list_of_versions = json.load(f, cls=CustomJsonDecoder)
+        for ver_dict in list_of_versions:
+            list_of_legislation.append( Legislation(**ver_dict) )
 
-        return Legislation(**dictionary[0])
+        return list_of_legislation
 
     def __post_init__(self):
         pass # Error checking logic
@@ -72,5 +74,5 @@ if __name__ == "__main__":
     with open('testing.json', 'w') as f:
         json.dump(dictionary, f,  indent=1)
 
-    Leg = Legislation.fromJson('legislation/test.json')
+    Leg = Legislation.listFromJson('legislation/Legislation_397908.json')
     print(Leg)
