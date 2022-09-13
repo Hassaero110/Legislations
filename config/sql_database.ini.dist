@@ -1,0 +1,6 @@
+[DATABASE]
+server = localhost\SQLEXPRESS
+driver = {ODBC Driver 18 for SQL Server}
+database = master
+trusted_connection = yes
+trust_server_certificate = yes

@@ -10,7 +10,7 @@ debug = True
 if __name__ == "__main__":
 
     # Open database
-    database = connect_to_database(database="master")
+    database = connect_to_database()
     # Convvert json to database
     json_to_sql(database=database)
 
