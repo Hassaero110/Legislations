@@ -25,19 +25,25 @@ CREATE TABLE dbo.legislations(
 	FOREIGN KEY (JurisdictionSourceId) REFERENCES dbo.jurisdiction (SourceId)
 );
 
+CREATE TABLE dbo.leg_part_relationship(
+
+	LegislationVersionId			int NOT NULL,
+	LegislationSourceId				UNIQUEIDENTIFIER,
+	LegislationVersionOrdinal		int,
+	PartVersionId					int,
+	PartSourceId					UNIQUEIDENTIFIER NOT NULL,
+	PartVersionOrdinal				int NOT NULL
+
+	);
 
 CREATE TABLE dbo.part(
-	PartVersionId					int,
-	LegislationVersionId			int,
+	PartVersionId					int NOT NULL,
 	PartSourceId					UNIQUEIDENTIFIER NOT NULL,
 	PartVersionOrdinal				int NOT NULL,
 	OrderNum						int,
 	Content							nvarchar(max),
 	NativeContent					nvarchar(max),
 	ParentPartVersionId				int
-
-
-	FOREIGN KEY (LegislationVersionId) REFERENCES dbo.legislations(LegislationVersionId)
 );
 
 ALTER TABLE dbo.part
