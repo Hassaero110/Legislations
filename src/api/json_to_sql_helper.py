@@ -1,50 +1,10 @@
-import os
-from pathlib import Path
-
-import pyodbc
 from pyodbc import Connection
 
-from models.legislation import Legislation
-
-directory = "Legislation"
-
-debug = True
-
-
-def connect_to_database(
-    server="localhost\SQLEXPRESS",
-    driver="{ODBC Driver 18 for SQL Server}",
-    database="master",
-):
-    # username = 'myusername'
-    # password = 'mypassword'
-
-    cstring = (
-        f"DRIVER={driver};"
-        f"Server={server};"
-        f"Database={database};"
-        "Trusted_Connection=yes;"
-        "TrustServerCertificate=yes"  # This line is not best practice.
-        # see https://stackoverflow.com/questions/17615260/the-certificate-chain-was-issued-by-an-authority-that-is-not-trusted-when-conn
-    )
-    cnxn = pyodbc.connect(cstring, autocommit=True)  # CHANGE Later to manually commit
-    cnxn.setdecoding(pyodbc.SQL_CHAR, encoding="utf8")
-    cnxn.setdecoding(pyodbc.SQL_WCHAR, encoding="utf8")
-    cnxn.setencoding(encoding="utf8")
-    return cnxn
-
-
-def run_sql_command(sql, database, verbose=False):
-    if verbose:
-        print("---------DEBUG-----------")
-        print(sql)
-    cursor = database.cursor()
-    return cursor.execute(sql)
+from src.api.sql_helper import run_sql_command
+from src.models.legislation import Legislation
 
 
 ############# IssuingBody ###################
-
-
 def check_issuing_body_exists(*, sql_table="dbo.issuing_body", database):
     result = get_issuing_body_from_sql(database=database)
     SourceID_list = []
@@ -193,33 +153,3 @@ def post_part_relationship_to_sql(legislation_data: Legislation, database: Conne
         f" '{legislation_data.LegislationSourceId}');"
     )
     run_sql_command(sql_command, database)
-
-
-def json_to_sql():
-    pass
-
-
-def query_legislation():
-    """
-    Search the database for legislation matching criteria
-    minimum text search across legislation and part title and content
-    """
-
-
-def optional_no_sql_database_version():
-    pass
-
-
-if __name__ == "__main__":
-    database = connect_to_database(database="master")
-
-    for path in Path("data").rglob("Legislation*.json"):
-        print("name: ", path)
-        leg_list = Legislation.listFromJson(path)
-        # Each legislation file has
-        post_issuing_bodies_to_sql(leg_list[0], database=database)
-        post_jurisdiction_to_sql(leg_list[0], database=database)
-        post_legislation_to_sql(leg_list[0], database=database)
-        for _leg in leg_list:
-            post_part_relationship_to_sql(_leg, database=database)
-            post_part_to_sql(_leg, database=database)

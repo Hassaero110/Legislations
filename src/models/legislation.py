@@ -2,7 +2,7 @@ import json
 from dataclasses import asdict, dataclass
 from types import NoneType
 
-from utils.json_encoder_decoder import CustomJsonDecoder
+from src.utils.json_encoder_decoder import CustomJsonDecoder
 
 directory = "Legislation"
 

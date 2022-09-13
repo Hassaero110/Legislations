@@ -1,15 +1,12 @@
 import html
 import json
 
-from models.legislation import Legislation
-
 
 class CustomJsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, bytes):
             return o.decode("utf-8")
-        if isinstance(o, Legislation):
-            return {"__leg__": o.as_dict()}
+
         return super().default(o)
 
 
