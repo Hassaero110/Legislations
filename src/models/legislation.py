@@ -1,8 +1,8 @@
-import html
 import json
-import os
 from dataclasses import asdict, dataclass
 from types import NoneType
+
+from utils.json_encoder_decoder import CustomJsonDecoder
 
 directory = "Legislation"
 
@@ -41,33 +41,8 @@ class Legislation:
     def __post_init__(self):
         pass  # Error checking logic
 
-
-######
-class CustomJsonEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, bytes):
-            return o.decode("utf-8")
-        if isinstance(o, Legislation):
-            return {"__leg__": asdict(o)}
-        return super().default(o)
-
-
-class CustomJsonDecoder(json.JSONDecoder):
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
-    def object_hook(self, dct):
-        for _k, _v in dct.items():
-            # If string, clean it
-            if isinstance(_v, str):
-                dct[_k] = html.escape(_v)
-
-            # if dict, clean every string in dict
-            if isinstance(_v, dict):
-                dct[_k] = self.object_hook(_v)
-
-        return dct
-
-
-if __name__ == "__main__":
-    True
+    def as_dict(self):
+        """
+        Return as dictionary
+        """
+        return asdict(self)

@@ -1,9 +1,10 @@
 import os
+from pathlib import Path
 
 import pyodbc
 from pyodbc import Connection
 
-from legislation import Legislation
+from models.legislation import Legislation
 
 directory = "Legislation"
 
@@ -97,7 +98,6 @@ def check_jurisdiction_exists(*, database):
 
 
 def post_jurisdiction_to_sql(legislation_data: Legislation, database: Connection):
-
     if legislation_data.JurisdictionSourceId.upper() not in check_jurisdiction_exists(
         database=database
     ):
@@ -136,10 +136,11 @@ def post_legislation_to_sql(legislation_data: Legislation, database: Connection)
         database=database
     ):
         sql_command = (
-            "INSERT INTO dbo.legislations (LegislationVersionId, LegislationSourceId, LegislationVersionOrdinal,"
-            " Title, NativeTitle, IssuingBodySourceId, JurisdictionSourceId)VALUES"
-            f" ('{legislation_data.LegislationVersionId}',"
-            f" '{legislation_data.LegislationSourceId}' , '{legislation_data.LegislationVersionOrdinal}','{legislation_data.Title}',"
+            "INSERT INTO dbo.legislations (LegislationVersionId, LegislationSourceId,"
+            " LegislationVersionOrdinal, Title, NativeTitle, IssuingBodySourceId,"
+            f" JurisdictionSourceId)VALUES ('{legislation_data.LegislationVersionId}',"
+            f" '{legislation_data.LegislationSourceId}' ,"
+            f" '{legislation_data.LegislationVersionOrdinal}','{legislation_data.Title}',"
             f" '{legislation_data.NativeTitle}',"
             f" '{legislation_data.IssuingBodySourceId}',"
             f" '{legislation_data.JurisdictionSourceId}');"
@@ -150,49 +151,50 @@ def post_legislation_to_sql(legislation_data: Legislation, database: Connection)
 ############ Part ##############
 
 
-def check_part_exists(*, database, sql_table = "dbo.part", legislation_data: Legislation ):
-
-    result = run_sql_command(f"SELECT PartSourceId, PartVersionOrdinal FROM {sql_table} WHERE PartSourceId = '{legislation_data.PartSourceId.upper()}' AND PartVersionOrdinal = {legislation_data.PartVersionOrdinal};", database, verbose=True)
+def check_part_exists(*, database, sql_table="dbo.part", legislation_data: Legislation):
+    result = run_sql_command(
+        f"SELECT PartSourceId, PartVersionOrdinal FROM {sql_table} WHERE PartSourceId ="
+        f" '{legislation_data.PartSourceId.upper()}' AND PartVersionOrdinal ="
+        f" {legislation_data.PartVersionOrdinal};",
+        database,
+        verbose=True,
+    )
     row = result.fetchone()
 
     if row is None:
-
         return False
-    
-    else:
 
+    else:
         return True
 
 
 def post_part_to_sql(legislation_data: Legislation, database: Connection):
-
     if not check_part_exists(legislation_data=legislation_data, database=database):
-
         sql_command = (
-            "INSERT INTO dbo.part (PartVersionId, PartSourceId, PartVersionOrdinal, OrderNum, Content, NativeContent, ParentPartVersionId)VALUES"
-            f" ('{legislation_data.PartVersionId}',"
-            f" '{legislation_data.PartSourceId}',"
-            f" '{legislation_data.PartVersionOrdinal}',"
-            f" '{legislation_data.OrderNum}',"
-            f" '{legislation_data.Content}',"
-            f" '{legislation_data.NativeContent}',"
+            "INSERT INTO dbo.part (PartVersionId, PartSourceId, PartVersionOrdinal,"
+            " OrderNum, Content, NativeContent, ParentPartVersionId)VALUES"
+            f" ('{legislation_data.PartVersionId}', '{legislation_data.PartSourceId}',"
+            f" '{legislation_data.PartVersionOrdinal}', '{legislation_data.OrderNum}',"
+            f" '{legislation_data.Content}', '{legislation_data.NativeContent}',"
             f" '{legislation_data.ParentPartVersionId}');"
         )
         run_sql_command(sql_command, database)
 
+
 ##############################################################################################
 def post_part_relationship_to_sql(legislation_data: Legislation, database: Connection):
-
     sql_command = (
-        "INSERT INTO dbo.leg_part_relationship (PartVersionId, LegislationVersionId, PartSourceId, PartVersionOrdinal, LegislationVersionOrdinal, LegislationSourceId)VALUES"
-        f" ('{legislation_data.PartVersionId}',"
+        "INSERT INTO dbo.leg_part_relationship (PartVersionId, LegislationVersionId,"
+        " PartSourceId, PartVersionOrdinal, LegislationVersionOrdinal,"
+        f" LegislationSourceId)VALUES ('{legislation_data.PartVersionId}',"
         f" '{legislation_data.LegislationVersionId}',"
-        f" '{legislation_data.PartSourceId}',"
-        f" '{legislation_data.PartVersionOrdinal}',"
+        f" '{legislation_data.PartSourceId}', '{legislation_data.PartVersionOrdinal}',"
         f" '{legislation_data.LegislationVersionOrdinal}',"
         f" '{legislation_data.LegislationSourceId}');"
     )
     run_sql_command(sql_command, database)
+
+
 def json_to_sql():
     pass
 
@@ -211,15 +213,13 @@ def optional_no_sql_database_version():
 if __name__ == "__main__":
     database = connect_to_database(database="master")
 
-    for filename in os.listdir(directory):
-        f = os.path.join(directory, filename)
-
-        if os.path.isfile(f) and f.endswith(".json"):
-            print("name: ",f)
-            leg_list = Legislation.listFromJson(f)
-            post_issuing_bodies_to_sql(leg_list[0], database=database)
-            post_jurisdiction_to_sql(leg_list[0], database=database)
-            post_legislation_to_sql(leg_list[0], database=database)
-            for _leg in leg_list:
-                post_part_relationship_to_sql(_leg, database=database)
-                post_part_to_sql(_leg, database=database)
+    for path in Path("data").rglob("Legislation*.json"):
+        print("name: ", path)
+        leg_list = Legislation.listFromJson(path)
+        # Each legislation file has
+        post_issuing_bodies_to_sql(leg_list[0], database=database)
+        post_jurisdiction_to_sql(leg_list[0], database=database)
+        post_legislation_to_sql(leg_list[0], database=database)
+        for _leg in leg_list:
+            post_part_relationship_to_sql(_leg, database=database)
+            post_part_to_sql(_leg, database=database)
